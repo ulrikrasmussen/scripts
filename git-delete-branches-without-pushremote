@@ -1,0 +1,21 @@
+#!/bin/bash
+readonly temp=$(mktemp)
+git branch --format "%(refname:short)" \
+    | grep -v '^(' \
+    | while read -r b; do
+    if ! git show-ref -q "refs/remotes/origin/$b"; then
+        echo "$b" >> "$temp"
+    fi
+done
+echo Will delete the following:
+cat "$temp"
+echo
+while true; do
+    read -r -p 'Proceed? [y/n]' answer
+    if [[ "$answer" = "y" || "$answer" = "n" ]]; then break; fi
+done
+if [[ "$answer" = "y" ]]; then
+    while read -r b; do
+        git branch -D "$b"
+    done < "$temp"
+fi
